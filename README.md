@@ -1,2 +1,2 @@
 # cdp
-ChromeDevToolsProtocol协议封装
+[ChromeDevToolsProtocol](https://github.com/ChromeDevTools/devtools-protocol)协议封装。
