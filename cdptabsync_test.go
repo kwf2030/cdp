@@ -18,7 +18,7 @@ type HSync struct {
 func (h *HSync) OnCdpEvent(msg *Message) {
   fmt.Println("======Event:", h.name, msg.Method)
   if msg.Method == Page.LoadEventFired {
-    _, ch := h.tab.Call(Runtime.Evaluate, Param{"returnByValue": true, "expression": h.expr})
+    _, ch := h.tab.Call(Runtime.Evaluate, map[string]interface{}{"returnByValue": true, "expression": h.expr})
     resp := <-ch
     fmt.Println("======Resp:", h.name, resp.Method, resp.Id, resp.Result)
     h.ch <- struct{}{}
@@ -27,7 +27,7 @@ func (h *HSync) OnCdpEvent(msg *Message) {
   }
 }
 
-func (h *HSync) OnCdpResp(msg *Message) bool {
+func (h *HSync) OnCdpResponse(msg *Message) bool {
   return false
 }
 
@@ -48,7 +48,7 @@ func TestTabSync(t *testing.T) {
   }()
   ch <- struct{}{}
   wgSync.Wait()
-  chrome.Exit()
+  _ = chrome.Exit()
 }
 
 func tabSyncTB(chrome *Chrome, ch chan struct{}) {
@@ -60,7 +60,7 @@ func tabSyncTB(chrome *Chrome, ch chan struct{}) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://item.taobao.com/item.htm?id=549226118434"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://item.taobao.com/item.htm?id=549226118434"})
 }
 
 func tabSyncJD(chrome *Chrome, ch chan struct{}) {
@@ -72,7 +72,7 @@ func tabSyncJD(chrome *Chrome, ch chan struct{}) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://item.jd.com/3693867.html"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://item.jd.com/3693867.html"})
 }
 
 func tabSyncAmazon(chrome *Chrome, ch chan struct{}) {
@@ -84,5 +84,5 @@ func tabSyncAmazon(chrome *Chrome, ch chan struct{}) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://www.amazon.cn/dp/B072RBZ7T1/"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://www.amazon.cn/dp/B072RBZ7T1/"})
 }

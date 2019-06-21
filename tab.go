@@ -11,12 +11,8 @@ import (
 type Handler interface {
   OnCdpEvent(*Message)
 
-  OnCdpResp(*Message) bool
+  OnCdpResponse(*Message) bool
 }
-
-type Param map[string]interface{}
-
-type Result map[string]interface{}
 
 // 请求/响应/事件通知
 type Message struct {
@@ -29,12 +25,12 @@ type Message struct {
 
   // 请求的参数（可选）、事件通知的数据（可选），
   // 响应没有该字段
-  Param Param `json:"params,omitempty"`
+  Params map[string]interface{} `json:"params,omitempty"`
 
   // 响应数据（请求和事件通知没有该字段）
-  Result Result `json:"result,omitempty"`
+  Result map[string]interface{} `json:"result,omitempty"`
 
-  // 同步等待channel，仅在Handler为nil或回调函数返回false的时候会发送一次，
+  // 同步等待channel，仅在Handler为nil或Handler.OnCdpResponse()返回false的时候会发送一次，
   // 发送的是Message自身
   syncChan chan *Message
 
@@ -45,7 +41,7 @@ type Message struct {
   Obj  interface{} `json:"-"`
 }
 
-type tabMeta struct {
+type Meta struct {
   Id                   string `json:"id"`
   Type                 string `json:"type"`
   Title                string `json:"title"`
@@ -59,7 +55,7 @@ type tabMeta struct {
 type Tab struct {
   chrome *Chrome
 
-  meta *tabMeta
+  meta *Meta
 
   conn *websocket.Conn
 
@@ -77,10 +73,10 @@ type Tab struct {
   // 存放两类数据：
   // 1.订阅的事件（string-->bool），key是Message.Method，用于过滤WebSocket读取到的事件，
   // 2.请求的Message（int32-->*Message），key是Message.Id，用于读取到数据时找到对应的请求Message
-  eventsAndMessages sync.Map
+  data sync.Map
 }
 
-func (t *Tab) wsConnect() (*websocket.Conn, error) {
+func (t *Tab) connect() (*websocket.Conn, error) {
   conn, _, e := websocket.DefaultDialer.Dial(t.meta.WebSocketDebuggerUrl, nil)
   if e != nil {
     return nil, e
@@ -88,7 +84,7 @@ func (t *Tab) wsConnect() (*websocket.Conn, error) {
   return conn, nil
 }
 
-func (t *Tab) wsRead() {
+func (t *Tab) read() {
   for {
     select {
     case <-t.closeChan:
@@ -107,41 +103,40 @@ func (t *Tab) wsRead() {
 }
 
 func (t *Tab) dispatch(msg *Message) {
-  // Message.id为0表示事件通知
+  // 事件通知
   if msg.Id == 0 {
     // 若注册过该类事件，则进行通知
-    if _, ok := t.eventsAndMessages.Load(msg.Method); ok && t.handler != nil {
+    if _, ok := t.data.Load(msg.Method); ok && t.handler != nil {
       go t.handler.OnCdpEvent(msg)
     }
     return
   }
-  // Message.id非0表示响应，
-  // 原始响应是没有method字段的，需要根据Id找到对应的请求，用请求中的method给其赋值
-  if v, ok := t.eventsAndMessages.Load(msg.Id); ok {
-    if req, ok := v.(*Message); ok {
-      t.eventsAndMessages.Delete(msg.Id)
-      // 把响应数据赋值给对应的请求，回调直接用req作为参数（省去给msg的字段一个个赋值了）
-      req.Result = msg.Result
-      go func() {
-        if t.handler == nil || !t.handler.OnCdpResp(req) {
-          req.syncChan <- req
-        }
-      }()
-    }
+  // Message.id非0表示响应
+  if v, ok := t.data.Load(msg.Id); ok {
+    t.data.Delete(msg.Id)
+    req := v.(*Message)
+    // 响应没有method字段，
+    // 把响应的数据赋值给对应的请求，回调用req作为参数（省去给msg的字段逐个赋值了）
+    req.Result = msg.Result
+    go func() {
+      if t.handler == nil || !t.handler.OnCdpResponse(req) {
+        req.syncChan <- req
+      }
+    }()
   }
 }
 
-func (t *Tab) FireEvent(event string, param Param) {
+func (t *Tab) FireEvent(event string, params map[string]interface{}) {
   if t.handler != nil {
-    go t.handler.OnCdpEvent(&Message{Method: event, Param: param})
+    go t.handler.OnCdpEvent(&Message{Method: event, Params: params})
   }
 }
 
-func (t *Tab) Call(method string, param Param) (int32, chan *Message) {
-  return t.CallAttr(method, param, 0, 0, "", nil)
+func (t *Tab) Call(method string, params map[string]interface{}) (int32, chan *Message) {
+  return t.CallAttr(method, params, 0, 0, "", nil)
 }
 
-func (t *Tab) CallAttr(method string, param Param, what, arg int, str string, obj interface{}) (int32, chan *Message) {
+func (t *Tab) CallAttr(method string, params map[string]interface{}, what, arg int, str string, obj interface{}) (int32, chan *Message) {
   if method == "" {
     return 0, nil
   }
@@ -150,14 +145,14 @@ func (t *Tab) CallAttr(method string, param Param, what, arg int, str string, ob
   msg := &Message{
     Id:       id,
     Method:   method,
-    Param:    param,
+    Params:   params,
     syncChan: ch,
     What:     what,
     Arg:      arg,
     Str:      str,
     Obj:      obj,
   }
-  t.eventsAndMessages.Store(id, msg)
+  t.data.Store(id, msg)
   e := t.conn.WriteJSON(msg)
   if e != nil {
     t.Close()
@@ -168,13 +163,13 @@ func (t *Tab) CallAttr(method string, param Param, what, arg int, str string, ob
 
 func (t *Tab) Subscribe(method string) {
   if method != "" {
-    t.eventsAndMessages.Store(method, true)
+    t.data.Store(method, true)
   }
 }
 
 func (t *Tab) Unsubscribe(method string) {
   if method != "" {
-    t.eventsAndMessages.Delete(method)
+    t.data.Delete(method)
   }
 }
 
@@ -186,13 +181,12 @@ func (t *Tab) Activate() {
 }
 
 func (t *Tab) Close() {
-  // 只要调用Close，就把Tab.closed标识设为1，
-  // 防止Close被多次调用
+  // 调用一次Close后把Tab.closed标识设为1，防止多次调用
   if !atomic.CompareAndSwapInt32(&t.closed, 0, 1) {
     return
   }
   close(t.closeChan)
-  t.conn.Close()
+  _ = t.conn.Close()
   resp, e := http.Get(t.chrome.Endpoint + "/close/" + t.meta.Id)
   if e == nil {
     drain(resp.Body)

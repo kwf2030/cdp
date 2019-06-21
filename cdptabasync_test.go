@@ -18,13 +18,13 @@ type H struct {
 func (h *H) OnCdpEvent(msg *Message) {
   fmt.Println("======Event:", h.name, msg.Method)
   if msg.Method == Page.LoadEventFired {
-    id, _ := h.tab.Call(Runtime.Evaluate, Param{"returnByValue": true, "expression": h.expr})
+    id, _ := h.tab.Call(Runtime.Evaluate, map[string]interface{}{"returnByValue": true, "expression": h.expr})
     fmt.Println("call id:", id)
     h.callId = id
   }
 }
 
-func (h *H) OnCdpResp(msg *Message) bool {
+func (h *H) OnCdpResponse(msg *Message) bool {
   fmt.Println("======Resp:", h.name, msg.Method, msg.Id, msg.Result)
   if msg.Id == h.callId {
     h.tab.Close()
@@ -43,7 +43,7 @@ func TestTabAsync(t *testing.T) {
   tabJD(chrome)
   tabAmazon(chrome)
   wg.Wait()
-  chrome.Exit()
+  _ = chrome.Exit()
 }
 
 func tabTB(chrome *Chrome) {
@@ -55,7 +55,7 @@ func tabTB(chrome *Chrome) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://item.taobao.com/item.htm?id=549226118434"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://item.taobao.com/item.htm?id=549226118434"})
 }
 
 func tabJD(chrome *Chrome) {
@@ -67,7 +67,7 @@ func tabJD(chrome *Chrome) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://item.jd.com/3693867.html"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://item.jd.com/3693867.html"})
 }
 
 func tabAmazon(chrome *Chrome) {
@@ -79,5 +79,5 @@ func tabAmazon(chrome *Chrome) {
   h.tab = tab
   tab.Subscribe(Page.LoadEventFired)
   tab.Call(Page.Enable, nil)
-  tab.Call(Page.Navigate, Param{"url": "https://www.amazon.cn/dp/B072RBZ7T1/"})
+  tab.Call(Page.Navigate, map[string]interface{}{"url": "https://www.amazon.cn/dp/B072RBZ7T1/"})
 }

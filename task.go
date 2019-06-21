@@ -8,27 +8,27 @@ const defaultEvent = "DEFAULT"
 
 type Action interface {
   Method() string
-  Param() Param
+  Params() map[string]interface{}
 }
 
 type SimpleAction struct {
   method string
-  param  Param
+  params map[string]interface{}
 }
 
-func NewSimpleAction(method string, param Param) *SimpleAction {
+func NewSimpleAction(method string, params map[string]interface{}) *SimpleAction {
   if method == "" {
     return nil
   }
-  return &SimpleAction{method: method, param: param}
+  return &SimpleAction{method: method, params: params}
 }
 
 func (sa *SimpleAction) Method() string {
   return sa.method
 }
 
-func (sa *SimpleAction) Param() Param {
-  return sa.param
+func (sa *SimpleAction) Params() map[string]interface{} {
+  return sa.params
 }
 
 type waitAction time.Duration
@@ -37,7 +37,7 @@ func (wa waitAction) Method() string {
   return ""
 }
 
-func (wa waitAction) Param() Param {
+func (wa waitAction) Params() map[string]interface{} {
   return nil
 }
 
@@ -61,8 +61,8 @@ func (sea *SimpleEvalAction) Method() string {
   return Runtime.Evaluate
 }
 
-func (sea *SimpleEvalAction) Param() Param {
-  return Param{"objectGroup": "console", "includeCommandLineAPI": true}
+func (sea *SimpleEvalAction) Params() map[string]interface{} {
+  return map[string]interface{}{"objectGroup": "console", "includeCommandLineAPI": true}
 }
 
 func (sea *SimpleEvalAction) Expressions() []string {
@@ -108,19 +108,15 @@ func (t *Task) OnCdpEvent(msg *Message) {
   }
 }
 
-func (t *Task) OnCdpResp(msg *Message) bool {
+func (t *Task) OnCdpResponse(msg *Message) bool {
   if t.handler != nil {
-    return t.handler.OnCdpResp(msg)
+    return t.handler.OnCdpResponse(msg)
   }
   return true
 }
 
-func (t *Task) CloseTab(msg *Message) {
-  t.tab.Close()
-}
-
-func (t *Task) ExitChrome(msg *Message) {
-  t.chrome.Exit()
+func (t *Task) Finish() {
+  _ = t.tab.Close
 }
 
 func (t *Task) Action(action Action) *Task {
@@ -170,17 +166,17 @@ func (t *Task) runAction(action Action) {
   case waitAction:
     time.Sleep(time.Duration(a))
   case EvalAction:
-    param := action.Param()
-    if param == nil {
-      param = Param{}
+    params := action.Params()
+    if params == nil {
+      params = make(map[string]interface{}, 1)
     }
     for _, expr := range a.Expressions() {
       if expr != "" {
-        param["expression"] = expr
-        t.tab.Call(action.Method(), param)
+        params["expression"] = expr
+        t.tab.Call(action.Method(), params)
       }
     }
   default:
-    t.tab.Call(action.Method(), action.Param())
+    t.tab.Call(action.Method(), action.Params())
   }
 }
