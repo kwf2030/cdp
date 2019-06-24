@@ -12,6 +12,13 @@ import (
   "strings"
   "sync"
   "time"
+
+  "github.com/kwf2030/commons/base"
+)
+
+var (
+  ErrLaunchChrome = base.NewException(0xF011, "failed to launch chrome")
+  ErrCreateTab    = base.NewException(0xF012, "failed to create tab")
 )
 
 type Chrome struct {
@@ -22,7 +29,7 @@ type Chrome struct {
 
 func Launch(bin string, args ...string) (*Chrome, error) {
   if bin == "" {
-    return nil, errors.New("param <bin> is empty")
+    return nil, base.ErrInvalidArgs
   }
   _, e := exec.LookPath(bin)
   if e != nil {
@@ -33,7 +40,7 @@ func Launch(bin string, args ...string) (*Chrome, error) {
     if strings.Contains(arg, "--remote-debugging-port") {
       arr := strings.Split(arg, "=")
       if len(arr) != 2 {
-        return nil, errors.New("param <args> invalid")
+        return nil, base.ErrInvalidArgs
       }
       port = strings.TrimSpace(arr[1])
       break
@@ -50,7 +57,7 @@ func Launch(bin string, args ...string) (*Chrome, error) {
   }
   c := &Chrome{"http://127.0.0.1:" + port + "/json", cmd.Process}
   if ok := c.waitForStarted(time.Second * 10); !ok {
-    return nil, errors.New("failed to launch chrome")
+    return nil, ErrLaunchChrome
   }
   return c, nil
 }
@@ -86,7 +93,7 @@ func (c *Chrome) NewTab(h Handler) (*Tab, error) {
     return nil, e
   }
   if meta.Id == "" || meta.WebSocketDebuggerUrl == "" {
-    return nil, errors.New("failed to create tab")
+    return nil, ErrCreateTab
   }
   t := &Tab{
     chrome:    c,
@@ -125,6 +132,6 @@ func (c *Chrome) waitForStarted(timeout time.Duration) bool {
 func drain(r io.ReadCloser) {
   _, e := ioutil.ReadAll(r)
   if e == nil {
-    _ = r.Close()
+    r.Close()
   }
 }

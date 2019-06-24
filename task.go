@@ -116,7 +116,7 @@ func (t *Task) OnCdpResponse(msg *Message) bool {
 }
 
 func (t *Task) Finish() {
-  _ = t.tab.Close
+  t.tab.Close()
 }
 
 func (t *Task) Action(action Action) *Task {

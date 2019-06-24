@@ -186,7 +186,7 @@ func (t *Tab) Close() {
     return
   }
   close(t.closeChan)
-  _ = t.conn.Close()
+  t.conn.Close()
   resp, e := http.Get(t.chrome.Endpoint + "/close/" + t.meta.Id)
   if e == nil {
     drain(resp.Body)
