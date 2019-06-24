@@ -43,7 +43,7 @@ func TestTabAsync(t *testing.T) {
   tabJD(chrome)
   tabAmazon(chrome)
   wg.Wait()
-  _ = chrome.Exit()
+  chrome.Exit()
 }
 
 func tabTB(chrome *Chrome) {

@@ -161,15 +161,19 @@ func (t *Tab) CallAttr(method string, params map[string]interface{}, what, arg i
   return id, ch
 }
 
-func (t *Tab) Subscribe(method string) {
-  if method != "" {
-    t.data.Store(method, true)
+func (t *Tab) Subscribe(events ...string) {
+  for _, evt := range events {
+    if evt != "" {
+      t.data.Store(evt, true)
+    }
   }
 }
 
-func (t *Tab) Unsubscribe(method string) {
-  if method != "" {
-    t.data.Delete(method)
+func (t *Tab) Unsubscribe(events ...string) {
+  for _, evt := range events {
+    if evt != "" {
+      t.data.Delete(evt)
+    }
   }
 }
 

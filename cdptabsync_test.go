@@ -48,7 +48,7 @@ func TestTabSync(t *testing.T) {
   }()
   ch <- struct{}{}
   wgSync.Wait()
-  _ = chrome.Exit()
+  chrome.Exit()
 }
 
 func tabSyncTB(chrome *Chrome, ch chan struct{}) {
