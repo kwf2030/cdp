@@ -17,8 +17,8 @@ import (
 )
 
 var (
-  ErrLaunchChrome = base.NewException(0xF011, "failed to launch chrome")
-  ErrCreateTab    = base.NewException(0xF012, "failed to create tab")
+  ErrLaunchChrome = errors.New("failed to launch chrome")
+  ErrCreateTab    = errors.New("failed to create tab")
 )
 
 type Chrome struct {
