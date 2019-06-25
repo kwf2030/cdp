@@ -23,13 +23,40 @@ var (
 
 type Chrome struct {
   // ChromeDevToolsProtocol的Endpoint（http://host:port/json）
+  // [ {
+  //    "description": "",
+  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/5D5FE2210AF9A5DAFAA2D69159C6CD52",
+  //    "id": "5D5FE2210AF9A5DAFAA2D69159C6CD52",
+  //    "title": "新标签页",
+  //    "type": "page",
+  //    "url": "chrome://newtab/",
+  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/5D5FE2210AF9A5DAFAA2D69159C6CD52"
+  // }, {
+  //    "description": "",
+  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/853C0E933FD62DAD9ABBDFC9C3C47084",
+  //    "faviconUrl": "https://www.baidu.com/favicon.ico",
+  //    "id": "853C0E933FD62DAD9ABBDFC9C3C47084",
+  //    "title": "百度一下，你就知道",
+  //    "type": "page",
+  //    "url": "https://www.baidu.com/",
+  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/853C0E933FD62DAD9ABBDFC9C3C47084"
+  // }, {
+  //    "description": "",
+  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/CF2C261EEFA71ACB7803D25CFE93386C",
+  //    "faviconUrl": "https://www.jd.com/favicon.ico",
+  //    "id": "CF2C261EEFA71ACB7803D25CFE93386C",
+  //    "title": "京东(JD.COM)-正品低价、品质保障、配送及时、轻松购物！",
+  //    "type": "page",
+  //    "url": "https://www.jd.com/",
+  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/CF2C261EEFA71ACB7803D25CFE93386C"
+  // } ]
   Endpoint string
   Process  *os.Process
 }
 
 func Launch(bin string, args ...string) (*Chrome, error) {
   if bin == "" {
-    return nil, base.ErrInvalidArgs
+    return nil, base.ErrInvalidArgument
   }
   _, e := exec.LookPath(bin)
   if e != nil {
@@ -40,7 +67,7 @@ func Launch(bin string, args ...string) (*Chrome, error) {
     if strings.Contains(arg, "--remote-debugging-port") {
       arr := strings.Split(arg, "=")
       if len(arr) != 2 {
-        return nil, base.ErrInvalidArgs
+        return nil, base.ErrInvalidArgument
       }
       port = strings.TrimSpace(arr[1])
       break
@@ -66,7 +93,13 @@ func Connect(host string, port int) (*Chrome, error) {
   if host == "" || port <= 0 {
     return nil, errors.New("param invalid")
   }
-  return &Chrome{fmt.Sprintf("http://%s:%d/json", host, port), nil}, nil
+  endpoint := fmt.Sprintf("http://%s:%d/json", host, port)
+  resp, e := http.Get(endpoint)
+  if e != nil {
+    return nil, e
+  }
+  drain(resp.Body)
+  return &Chrome{endpoint, nil}, nil
 }
 
 func (c *Chrome) Exit() error {
