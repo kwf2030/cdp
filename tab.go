@@ -128,7 +128,7 @@ func (t *Tab) dispatch(msg *Message) {
   }
 }
 
-func (t *Tab) FireEvent(event string, params map[string]interface{}) {
+func (t *Tab) Fire(event string, params map[string]interface{}) {
   if t.handler != nil {
     go t.handler.OnCdpEvent(&Message{Method: event, Params: params})
   }
