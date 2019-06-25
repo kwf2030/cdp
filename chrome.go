@@ -22,34 +22,8 @@ var (
 )
 
 type Chrome struct {
-  // ChromeDevToolsProtocol的Endpoint（http://host:port/json）
-  // [ {
-  //    "description": "",
-  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/5D5FE2210AF9A5DAFAA2D69159C6CD52",
-  //    "id": "5D5FE2210AF9A5DAFAA2D69159C6CD52",
-  //    "title": "新标签页",
-  //    "type": "page",
-  //    "url": "chrome://newtab/",
-  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/5D5FE2210AF9A5DAFAA2D69159C6CD52"
-  // }, {
-  //    "description": "",
-  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/853C0E933FD62DAD9ABBDFC9C3C47084",
-  //    "faviconUrl": "https://www.baidu.com/favicon.ico",
-  //    "id": "853C0E933FD62DAD9ABBDFC9C3C47084",
-  //    "title": "百度一下，你就知道",
-  //    "type": "page",
-  //    "url": "https://www.baidu.com/",
-  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/853C0E933FD62DAD9ABBDFC9C3C47084"
-  // }, {
-  //    "description": "",
-  //    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9222/devtools/page/CF2C261EEFA71ACB7803D25CFE93386C",
-  //    "faviconUrl": "https://www.jd.com/favicon.ico",
-  //    "id": "CF2C261EEFA71ACB7803D25CFE93386C",
-  //    "title": "京东(JD.COM)-正品低价、品质保障、配送及时、轻松购物！",
-  //    "type": "page",
-  //    "url": "https://www.jd.com/",
-  //    "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/page/CF2C261EEFA71ACB7803D25CFE93386C"
-  // } ]
+  // ChromeDevToolsProtocol的Endpoint（http://host:port/json），
+  // 请求该地址返回的是Meta数组
   Endpoint string
   Process  *os.Process
 }

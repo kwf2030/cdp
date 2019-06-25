@@ -12,12 +12,12 @@ var wg1 sync.WaitGroup
 type H1 struct{}
 
 func (h1 *H1) OnCdpEvent(msg *Message) {
-  fmt.Println("======Event:", msg.Method)
+  fmt.Println("======OnCdpEvent:", msg.Method)
   fmt.Println(msg.Params)
 }
 
 func (h1 *H1) OnCdpResponse(msg *Message) bool {
-  fmt.Println("======Resp:", msg.Method, msg.Result)
+  fmt.Println("======OnCdpResponse:", msg.Method, msg.Result)
   return false
 }
 
@@ -39,9 +39,11 @@ func TestWindow(t *testing.T) {
   tab.Call(Page.Enable, nil)
   tab.Call(Page.Navigate, map[string]interface{}{"url": "https://shanghai.anjuke.com/community/?from=navigation"})
   time.Sleep(time.Second * 5)
-  tab.Call(Runtime.Evaluate, map[string]interface{}{"returnByValue": true, "expression": "document.querySelector('#list-content').children[1].click()"})
-  time.Sleep(time.Second * 5)
-  tab.Call(Target.AttachToTarget, map[string]interface{}{"returnByValue": true, "expression": ""})
+  tab.Call(Input.DispatchMouseEvent, map[string]interface{}{"type": "mousePressed", "x": 200, "y": 600, "button": "left", "clickCount": 1})
+  tab.Call(Input.DispatchMouseEvent, map[string]interface{}{"type": "mouseReleased", "x": 200, "y": 600, "button": "left", "clickCount": 1})
+  _, ch := tab.Call(Target.GetTargets, nil)
+  msg := <-ch
+  fmt.Println(msg)
   wg1.Wait()
   chrome.Exit()
 }

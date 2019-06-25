@@ -13,15 +13,23 @@ var Browser = struct {
 }
 
 var DOM = struct {
-  Enable            string
-  Disable           string
-  DescribeNode      string
-  GetDocument       string
-  QuerySelector     string
-  QuerySelectorAll  string
-  RequestChildNodes string
-  RequestNode       string
-  ResolveNode       string
+  Enable              string
+  Disable             string
+  DescribeNode        string
+  Focus               string
+  GetAttributes       string
+  GetDocument         string
+  QuerySelector       string
+  QuerySelectorAll    string
+  RemoveAttribute     string
+  RemoveNode          string
+  RequestChildNodes   string
+  RequestNode         string
+  ResolveNode         string
+  SetAttributeValue   string
+  SetAttributesAsText string
+  SetNodeName         string
+  SetNodeValue        string
 
   ChildNodeCountUpdated string
   ChildNodeInserted     string
@@ -31,12 +39,20 @@ var DOM = struct {
   "DOM.enable",
   "DOM.disable",
   "DOM.describeNode",
+  "DOM.focus",
+  "DOM.getAttributes",
   "DOM.getDocument",
   "DOM.querySelector",
   "DOM.querySelectorAll",
+  "DOM.removeAttribute",
+  "DOM.removeNode",
   "DOM.requestChildNodes",
   "DOM.requestNode",
   "DOM.resolveNode",
+  "DOM.setAttributeValue",
+  "DOM.setAttributesAsText",
+  "DOM.setNodeName",
+  "DOM.setNodeValue",
 
   "DOM.childNodeCountUpdated",
   "DOM.childNodeInserted",
@@ -44,6 +60,14 @@ var DOM = struct {
   "DOM.documentUpdated",
 }
 
+// Chrome里有两类Input事件：可信的与非可信的，
+// 可信事件是用户和页面交互触发的事件，如鼠标或键盘，
+// 非可信事件是指由Web API触发的，如document.createEvent()或element.click()。
+// 例如模拟点击事件，可以使用Runtime.Evaluate，传入表达式document.querySelector('xxx').click()，
+// 但这属于非可信事件，如果点击会创建新Tab，浏览器会识别为弹出窗口进行拦截（Page.windowOpen事件仍会触发），
+// 所以对于这种情况，只能使用Input.dispatchMouseEvent。
+// 注：Input.dispatchMouseEvent模拟点击的话需要连续两次调用（type分别为mousePressed和mouseReleased），
+// 并且必须带上button和clickCount参数
 var Input = struct {
   DispatchKeyEvent   string
   DispatchMouseEvent string
