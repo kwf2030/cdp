@@ -17,13 +17,13 @@ func (h1 *H1) OnCdpEvent(msg *Message) {
 }
 
 func (h1 *H1) OnCdpResponse(msg *Message) bool {
-  fmt.Println("======OnCdpResponse:", msg.Method, msg.Result)
+  fmt.Println("======OnCdpResponse:", msg.Id, msg.Method)
+  fmt.Println(msg.Result)
   return false
 }
 
 func TestWindow(t *testing.T) {
-  // chrome, e := Launch("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
-  chrome, e := Launch("C:/App/Chromium/chrome.exe")
+  chrome, e := Launch("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
   if e != nil {
     panic(e)
   }
@@ -33,9 +33,9 @@ func TestWindow(t *testing.T) {
   if e != nil {
     panic(e)
   }
-  tab.Subscribe(Page.LoadEventFired, Page.WindowOpen, Target.AttachedToTarget,
-    Target.DetachedFromTarget, Target.ReceivedMessageFromTarget, Target.TargetCreated,
-    Target.TargetDestroyed, Target.TargetCrashed, Target.TargetInfoChanged)
+  tab.Subscribe(Page.LoadEventFired, Page.WindowOpen,
+    Target.AttachedToTarget, Target.DetachedFromTarget, Target.ReceivedMessageFromTarget,
+    Target.TargetCreated, Target.TargetDestroyed, Target.TargetCrashed, Target.TargetInfoChanged)
   tab.Call(Page.Enable, nil)
   tab.Call(Page.Navigate, map[string]interface{}{"url": "https://shanghai.anjuke.com/community/?from=navigation"})
   time.Sleep(time.Second * 5)

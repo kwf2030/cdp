@@ -12,10 +12,12 @@ type HTask struct {
 
 func (h *HTask) OnCdpEvent(msg *Message) {
   fmt.Println("======OnCdpEvent:", h.name, msg.Method)
+  fmt.Println(msg.Params)
 }
 
 func (h *HTask) OnCdpResponse(msg *Message) bool {
-  fmt.Println("======OnCdpResponse:", h.name, msg.Method, msg.Id, msg.Result)
+  fmt.Println("======OnCdpResponse:", h.name, msg.Id, msg.Method)
+  fmt.Println(msg.Result)
   return true
 }
 

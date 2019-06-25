@@ -17,15 +17,17 @@ type H struct {
 
 func (h *H) OnCdpEvent(msg *Message) {
   fmt.Println("======OnCdpEvent:", h.name, msg.Method)
+  fmt.Println(msg.Params)
   if msg.Method == Page.LoadEventFired {
     id, _ := h.tab.Call(Runtime.Evaluate, map[string]interface{}{"returnByValue": true, "expression": h.expr})
-    fmt.Println("call id:", id)
+    fmt.Println("id:", id)
     h.callId = id
   }
 }
 
 func (h *H) OnCdpResponse(msg *Message) bool {
-  fmt.Println("======OnCdpResponse:", h.name, msg.Method, msg.Id, msg.Result)
+  fmt.Println("======OnCdpResponse:", h.name, msg.Id, msg.Method)
+  fmt.Println(msg.Result)
   if msg.Id == h.callId {
     h.tab.Close()
     wg.Done()
