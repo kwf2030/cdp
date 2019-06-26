@@ -76,8 +76,7 @@ func main() {
   wg.Add(1)
 
   var e error
-  chrome, e = cdp.Launch("C:/App/Chromium/chrome.exe")
-  // chrome, e = cdp.Connect("127.0.0.1", 9222)
+  chrome, e = cdp.Launch("C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
   if e != nil {
     panic(e)
   }
