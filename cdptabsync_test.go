@@ -16,7 +16,7 @@ type HSync struct {
 }
 
 func (h *HSync) OnCdpEvent(msg *Message) {
-  fmt.Println("======OnCdpEvent:", h.name, msg.Method)
+  fmt.Println("==========OnCdpEvent:", h.name, msg.Method)
   fmt.Println(msg.Params)
   if msg.Method == Page.LoadEventFired {
     _, ch := h.tab.Call(Runtime.Evaluate, map[string]interface{}{"returnByValue": true, "expression": h.expr})
@@ -29,7 +29,7 @@ func (h *HSync) OnCdpEvent(msg *Message) {
 }
 
 func (h *HSync) OnCdpResponse(msg *Message) bool {
-  fmt.Println("======OnCdpResponse:", h.name, msg.Id, msg.Method)
+  fmt.Println("==========OnCdpResponse:", h.name, msg.Id, msg.Method)
   fmt.Println(msg.Result)
   return false
 }

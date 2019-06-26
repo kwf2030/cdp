@@ -5,32 +5,84 @@ import (
   "encoding/json"
   "fmt"
   "os"
+  "strings"
+  "sync"
   "time"
 
   "github.com/kwf2030/cdp"
 )
 
+var (
+  wg     sync.WaitGroup
+  chrome *cdp.Chrome
+  tab    *cdp.Tab
+)
+
 type REPL struct{}
 
 func (r *REPL) OnCdpEvent(msg *cdp.Message) {
-  fmt.Println("======OnCdpEvent:", msg.Method)
+  fmt.Printf("\n==========OnCdpEvent: {method: %s}\n", msg.Method)
   fmt.Println(msg.Params)
 }
 
 func (r *REPL) OnCdpResponse(msg *cdp.Message) bool {
-  fmt.Println("======OnCdpResponse:", msg.Id, msg.Method)
+  fmt.Printf("==========OnCdpResponse: {id: %d, method: %s}\n", msg.Id, msg.Method)
   fmt.Println(msg.Result)
+  go readStdin()
   return true
 }
 
+func readStdin() {
+  scanner := bufio.NewScanner(os.Stdin)
+  fmt.Printf("Method: ")
+  scanner.Scan()
+  str := scanner.Text()
+  if str == "exit" {
+    chrome.Exit()
+    time.Sleep(time.Millisecond * 500)
+    wg.Done()
+    return
+  }
+  methods := strings.Split(str, ",")
+  params := make([]map[string]interface{}, len(methods))
+  for i := range methods {
+    methods[i] = strings.TrimSpace(methods[i])
+    if methods[i] == "" {
+      continue
+    }
+
+    fmt.Printf("Params(%d): ", i)
+    scanner.Scan()
+    str = scanner.Text()
+    if str != "" {
+      var m map[string]interface{}
+      e := json.Unmarshal([]byte(str), &m)
+      if e != nil {
+        fmt.Println(e)
+        continue
+      }
+      params[i] = m
+    }
+  }
+
+  for i, m := range methods {
+    if m != "" {
+      tab.Call(m, params[i])
+    }
+  }
+}
+
 func main() {
-  chrome, e := cdp.Launch("C:/App/Chromium/chrome.exe")
-  // chrome, e := cdp.Connect("127.0.0.1", 9222)
+  wg.Add(1)
+
+  var e error
+  chrome, e = cdp.Launch("C:/App/Chromium/chrome.exe")
+  // chrome, e = cdp.Connect("127.0.0.1", 9222)
   if e != nil {
     panic(e)
   }
 
-  tab, e := chrome.NewTab(&REPL{})
+  tab, e = chrome.NewTab(&REPL{})
   if e != nil {
     panic(e)
   }
@@ -39,30 +91,7 @@ func main() {
     cdp.Target.TargetCreated, cdp.Target.TargetDestroyed, cdp.Target.TargetCrashed,
     cdp.Target.TargetInfoChanged)
 
-  scanner := bufio.NewScanner(os.Stdin)
-  for {
-    fmt.Print("Method: ")
-    scanner.Scan()
-    method := scanner.Text()
-    if method == "exit" {
-      chrome.Exit()
-      return
-    }
+  go readStdin()
 
-    fmt.Print("Params: ")
-    scanner.Scan()
-    str := scanner.Text()
-    var params map[string]interface{}
-    if str != "" {
-      e := json.Unmarshal([]byte(str), &params)
-      if e != nil {
-        fmt.Println(e)
-        continue
-      }
-    }
-
-    id, _ := tab.Call(method, params)
-    fmt.Println("id: ", id)
-    time.Sleep(time.Second)
-  }
+  wg.Wait()
 }
