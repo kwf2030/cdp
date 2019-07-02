@@ -45,12 +45,15 @@ func taskTB(chrome *Chrome) {
 
 func taskJD(chrome *Chrome) {
   h := &HTask{name: "JingDong"}
-  NewTask(chrome).
+  t := NewTask(chrome).
     Action(NewAction(Page.Enable, nil)).
     Action(NewAction(Page.Navigate, map[string]interface{}{"url": "https://item.jd.com/3693867.html"})).
     Until(Page.LoadEventFired).
     Action(NewEvalAction("document.querySelector('.J-p-3693867').textContent")).
     Run(h)
+  time.AfterFunc(time.Second*5, func() {
+    t.Finish()
+  })
 }
 
 func taskAmazon(chrome *Chrome) {

@@ -20,14 +20,14 @@ func NewAction(method string, params map[string]interface{}) Action {
   if method == "" {
     return nil
   }
-  return action{method: method, params: params}
+  return &action{method: method, params: params}
 }
 
-func (a action) Method() string {
+func (a *action) Method() string {
   return a.method
 }
 
-func (a action) Params() map[string]interface{} {
+func (a *action) Params() map[string]interface{} {
   return a.params
 }
 
@@ -42,7 +42,7 @@ func (wa waitAction) Params() map[string]interface{} {
 }
 
 type evalAction struct {
-  action
+  *action
   expressions []string
 }
 
@@ -50,8 +50,8 @@ func NewEvalAction(expressions ...string) Action {
   if len(expressions) == 0 {
     return nil
   }
-  return evalAction{
-    action: action{
+  return &evalAction{
+    action: &action{
       method: Runtime.Evaluate,
       params: map[string]interface{}{"returnByValue": true},
     },
@@ -155,7 +155,7 @@ func (t *Task) runAction(action Action) {
   switch a := action.(type) {
   case waitAction:
     time.Sleep(time.Duration(a))
-  case evalAction:
+  case *evalAction:
     for _, expr := range a.expressions {
       if expr != "" {
         a.params["expression"] = expr
