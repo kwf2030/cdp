@@ -1,7 +1,6 @@
 package cdp
 
 import (
-  "fmt"
   "time"
 )
 
@@ -53,8 +52,8 @@ func NewEvalAction(expressions ...string) Action {
   }
   return evalAction{
     action: action{
-      method: "Runtime.Evaluate",
-      params: map[string]interface{}{"objectGroup": "console", "includeCommandLineAPI": true},
+      method: Runtime.Evaluate,
+      params: map[string]interface{}{"returnByValue": true},
     },
     expressions: expressions,
   }
@@ -157,29 +156,13 @@ func (t *Task) runAction(action Action) {
   case waitAction:
     time.Sleep(time.Duration(a))
   case evalAction:
-    params := a.Params()
     for _, expr := range a.expressions {
       if expr != "" {
-        params["expression"] = expr
-        t.tab.Call(a.Method(), params)
+        a.params["expression"] = expr
+        t.tab.Call(a.Method(), a.params)
       }
     }
   default:
     t.tab.Call(a.Method(), a.Params())
-  }
-}
-
-func (t *Task) dump() {
-  for _, a := range t.actions[defaultEvent] {
-    fmt.Println(a.Method(), a.Params())
-  }
-  for evt, actions := range t.actions {
-    if evt == defaultEvent {
-      continue
-    }
-    fmt.Println("==========Event:", evt)
-    for _, a := range actions {
-      fmt.Println(a.Method(), a.Params())
-    }
   }
 }

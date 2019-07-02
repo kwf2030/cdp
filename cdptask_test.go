@@ -49,7 +49,6 @@ func taskJD(chrome *Chrome) {
     Action(NewAction(Page.Enable, nil)).
     Action(NewAction(Page.Navigate, map[string]interface{}{"url": "https://item.jd.com/3693867.html"})).
     Until(Page.LoadEventFired).
-    Wait(time.Second).
     Action(NewEvalAction("document.querySelector('.J-p-3693867').textContent")).
     Run(h)
 }

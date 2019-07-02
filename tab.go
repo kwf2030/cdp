@@ -12,7 +12,7 @@ type Handler interface {
   // 事件通知回调
   OnCdpEvent(*Message)
 
-  // 响应回调，返回值决定是否把Message发送到Tab.Call返回的chan
+  // 响应回调，返回false会把Message继续发送到Tab.Call返回的chan中
   OnCdpResponse(*Message) bool
 }
 
