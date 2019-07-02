@@ -1,72 +1,63 @@
 package cdp
 
 import (
+  "fmt"
   "time"
 )
 
-const defaultEvent = "DEFAULT"
+const defaultEvent = "__default__"
 
 type Action interface {
   Method() string
   Params() map[string]interface{}
 }
 
-type SimpleAction struct {
+type action struct {
   method string
   params map[string]interface{}
 }
 
-func NewSimpleAction(method string, params map[string]interface{}) *SimpleAction {
+func NewAction(method string, params map[string]interface{}) Action {
   if method == "" {
     return nil
   }
-  return &SimpleAction{method: method, params: params}
+  return action{method: method, params: params}
 }
 
-func (sa *SimpleAction) Method() string {
-  return sa.method
+func (a action) Method() string {
+  return a.method
 }
 
-func (sa *SimpleAction) Params() map[string]interface{} {
-  return sa.params
+func (a action) Params() map[string]interface{} {
+  return a.params
 }
 
 type waitAction time.Duration
 
 func (wa waitAction) Method() string {
-  return ""
+  return "<wait>"
 }
 
 func (wa waitAction) Params() map[string]interface{} {
   return nil
 }
 
-type EvalAction interface {
-  Action
-  Expressions() []string
-}
-
-type SimpleEvalAction struct {
+type evalAction struct {
+  action
   expressions []string
 }
 
-func NewSimpleEvalAction(expressions ...string) *SimpleEvalAction {
+func NewEvalAction(expressions ...string) Action {
   if len(expressions) == 0 {
     return nil
   }
-  return &SimpleEvalAction{expressions: expressions}
-}
-
-func (sea *SimpleEvalAction) Method() string {
-  return Runtime.Evaluate
-}
-
-func (sea *SimpleEvalAction) Params() map[string]interface{} {
-  return map[string]interface{}{"objectGroup": "console", "includeCommandLineAPI": true}
-}
-
-func (sea *SimpleEvalAction) Expressions() []string {
-  return sea.expressions
+  return evalAction{
+    action: action{
+      method: "Runtime.Evaluate",
+      params: map[string]interface{}{"objectGroup": "console", "includeCommandLineAPI": true},
+    },
+    expressions: expressions,
+  }
 }
 
 type Task struct {
@@ -165,18 +156,30 @@ func (t *Task) runAction(action Action) {
   switch a := action.(type) {
   case waitAction:
     time.Sleep(time.Duration(a))
-  case EvalAction:
-    params := action.Params()
-    if params == nil {
-      params = make(map[string]interface{}, 1)
-    }
-    for _, expr := range a.Expressions() {
+  case evalAction:
+    params := a.Params()
+    for _, expr := range a.expressions {
       if expr != "" {
         params["expression"] = expr
-        t.tab.Call(action.Method(), params)
+        t.tab.Call(a.Method(), params)
       }
     }
   default:
-    t.tab.Call(action.Method(), action.Params())
+    t.tab.Call(a.Method(), a.Params())
+  }
+}
+
+func (t *Task) dump() {
+  for _, a := range t.actions[defaultEvent] {
+    fmt.Println(a.Method(), a.Params())
+  }
+  for evt, actions := range t.actions {
+    if evt == defaultEvent {
+      continue
+    }
+    fmt.Println("==========Event:", evt)
+    for _, a := range actions {
+      fmt.Println(a.Method(), a.Params())
+    }
   }
 }
