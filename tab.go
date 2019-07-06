@@ -6,6 +6,7 @@ import (
   "sync/atomic"
 
   "github.com/gorilla/websocket"
+  "github.com/kwf2030/commons/conv"
 )
 
 type Handler interface {
@@ -41,6 +42,15 @@ type Message struct {
   Arg  int         `json:"-"`
   Str  string      `json:"-"`
   Obj  interface{} `json:"-"`
+}
+
+func (msg *Message) GetResultValue() string {
+  if rs, ok := msg.Result["result"]; ok {
+    if v, ok := rs.(map[string]interface{})["value"]; ok {
+      return conv.String(v, "")
+    }
+  }
+  return ""
 }
 
 // [ {
