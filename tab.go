@@ -44,6 +44,25 @@ type Message struct {
   Obj  interface{} `json:"-"`
 }
 
+// 返回Message的type和subtype（如果type是object），
+// Message可能没有type和subtype（如Page.navigate方法和Page.loadEventFired事件），
+// type和subtype通常是Runtime.evaluate的返回结果，
+// type可能是string/boolean/object/undefined等，
+// subtype可能是null
+func (msg *Message) GetResultType() (string, string) {
+  var typ, subtype string
+  if rs, ok := msg.Result["result"]; ok {
+    m := rs.(map[string]interface{})
+    if v, ok := m["type"]; ok {
+      typ = v.(string)
+    }
+    if v, ok := m["subtype"]; ok {
+      subtype = v.(string)
+    }
+  }
+  return typ, subtype
+}
+
 func (msg *Message) GetResultValue() string {
   if rs, ok := msg.Result["result"]; ok {
     if v, ok := rs.(map[string]interface{})["value"]; ok {
