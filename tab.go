@@ -48,7 +48,7 @@ type Message struct {
 // Message可能没有type和subtype（如Page.navigate方法和Page.loadEventFired事件），
 // type和subtype通常是Runtime.evaluate的返回结果，
 // type可能是string/boolean/object/undefined等，
-// subtype可能是null
+// subtype可能是null/error
 func (msg *Message) GetResultType() (string, string) {
   var typ, subtype string
   if rs, ok := msg.Result["result"]; ok {
