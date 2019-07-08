@@ -9,6 +9,7 @@ import (
   "net/http"
   "os"
   "os/exec"
+  "strconv"
   "strings"
   "sync"
   "time"
@@ -25,6 +26,8 @@ type Chrome struct {
   // ChromeDevToolsProtocol的Endpoint（http://host:port/json），
   // 请求该地址返回的是Meta数组
   Endpoint string
+  Host     string
+  Port     int
   Process  *os.Process
 }
 
@@ -56,7 +59,9 @@ func Launch(bin string, args ...string) (*Chrome, error) {
   if e != nil {
     return nil, e
   }
-  c := &Chrome{"http://127.0.0.1:" + port + "/json", cmd.Process}
+  h := "127.0.0.1"
+  p, _ := strconv.Atoi(port)
+  c := &Chrome{Endpoint: fmt.Sprintf("http://%s:%d/json", h, p), Host: h, Port: p, Process: cmd.Process}
   if ok := c.waitForStarted(time.Second * 10); !ok {
     return nil, ErrLaunchChrome
   }
@@ -73,7 +78,7 @@ func Connect(host string, port int) (*Chrome, error) {
     return nil, e
   }
   drain(resp.Body)
-  return &Chrome{endpoint, nil}, nil
+  return &Chrome{Endpoint: endpoint, Host: host, Port: port, Process: nil}, nil
 }
 
 func (c *Chrome) Exit() error {
