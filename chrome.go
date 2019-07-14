@@ -22,6 +22,12 @@ var (
   ErrCreateTab    = errors.New("failed to create tab")
 )
 
+var (
+  ArgDebugPort  = "--remote-debugging-port"
+  ArgHeadless   = "--headless"
+  ArgIgnoreCert = "--ignore-certificate-errors"
+)
+
 type Chrome struct {
   // ChromeDevToolsProtocol的Endpoint（http://host:port/json），
   // 请求该地址返回的是Meta数组
@@ -41,7 +47,7 @@ func Launch(bin string, args ...string) (*Chrome, error) {
   }
   var port string
   for _, arg := range args {
-    if strings.Contains(arg, "--remote-debugging-port") {
+    if strings.Contains(arg, ArgDebugPort) {
       arr := strings.Split(arg, "=")
       if len(arr) != 2 {
         return nil, base.ErrInvalidArgument
@@ -52,7 +58,7 @@ func Launch(bin string, args ...string) (*Chrome, error) {
   }
   if port == "" {
     port = "9222"
-    args = append(args, "--remote-debugging-port="+port)
+    args = append(args, ArgDebugPort+"="+port)
   }
   cmd := exec.Command(bin, args...)
   e = cmd.Start()
