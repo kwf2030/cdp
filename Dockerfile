@@ -1,8 +1,8 @@
 FROM ubuntu:18.04
 
 RUN apt-get -qq update && \
-  apt-get -qq -y upgrade && \
-  apt-get -qq -y install software-properties-common
+  apt-get -qq -y install software-properties-common \
+  apt-utils
 
 RUN apt-add-repository "deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner" && \
   apt-add-repository ppa:malteworld/ppa
@@ -19,6 +19,8 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
   fontconfig \
   libappindicator3-1 \
   pdftk \
+  curl \
+  wget \
   unzip \
   locales \
   gconf-service \
@@ -57,8 +59,6 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
   libnss3 \
   lsb-release \
   xdg-utils \
-  wget \
-  curl \
   xvfb && \
   fc-cache -f -v
 
