@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+COPY sources.list /etc/apt/sources.list
+
 RUN apt-get -qq update && \
   apt-get -qq -y install software-properties-common \
   apt-utils
