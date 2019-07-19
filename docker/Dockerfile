@@ -1,10 +1,10 @@
 FROM ubuntu:18.04
 
-COPY sources.list /etc/apt/sources.list
-
 RUN apt-get -qq update && \
-  apt-get -qq -y install software-properties-common \
-  apt-utils
+  apt-get -qq -y install apt-utils \
+  software-properties-common \
+  ca-certificates \
+  lsb-release
 
 RUN apt-add-repository "deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner" && \
   apt-add-repository ppa:malteworld/ppa
@@ -56,10 +56,8 @@ RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sele
   libxrender1 \
   libxss1 \
   libxtst6 \
-  ca-certificates \
   libappindicator1 \
   libnss3 \
-  lsb-release \
   xdg-utils \
   xvfb && \
   fc-cache -f -v
