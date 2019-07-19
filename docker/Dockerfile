@@ -85,4 +85,4 @@ EXPOSE 9500
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["google-chrome-stable", "--disable-gpu", "--headless", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9500"]
+CMD ["google-chrome-stable", "--no-sandbox", "--disable-gpu", "--headless", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9500"]
