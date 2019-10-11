@@ -1,6 +1,4 @@
 github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvKCM=
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/kwf2030/commons v1.0.0 h1:bmKGqTJoAjiswAhA+dGYxuMLA5sQblV7g689MAwrizk=
-github.com/kwf2030/commons v1.0.0/go.mod h1:yFGzJxUs9MNDzpKIWrvb8HIgtZzj87klI8XcDIyzoWw=
 github.com/kwf2030/commons v1.1.0 h1:k/68/cACXotkAVL6AULTPogCzA2zdTzDnv2ejlvBPPs=
 github.com/kwf2030/commons v1.1.0/go.mod h1:yFGzJxUs9MNDzpKIWrvb8HIgtZzj87klI8XcDIyzoWw=
